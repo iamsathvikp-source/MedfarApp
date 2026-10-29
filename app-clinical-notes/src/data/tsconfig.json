@@ -1,0 +1,23 @@
+{
+	"compilerOptions": {
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"lib": ["es2017", "dom"],
+		"jsx": "react-jsx",
+		"module": "node16",
+		"moduleResolution": "node16",
+		"noImplicitAny": true,
+		"noUnusedLocals": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"inlineSourceMap": true,
+		"declaration": true,
+		"declarationDir": "../../lib",
+		"outDir": "../../lib",
+		"target": "es2017",
+		"types": []
+	},
+	"files": ["index.tsx"],
+	"include": ["src/data"],
+	"exclude": ["node_modules"]
+}
