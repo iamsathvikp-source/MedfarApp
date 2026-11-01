@@ -32,8 +32,10 @@ interface FetchParams {
     cursor?: string | null;
 }
 export default class Client {
+    private ready;
     constructor();
     resetState(): Promise<void>;
+    private readPatients;
     fetchPatientData(opts?: FetchParams): Promise<PatientData[]>;
     addNewClinicalNote(patientId: string, clinicalNote: ClinicalNote): Promise<void>;
     fetchClinicalNoteTypes(): Promise<ClinicalNoteType[]>;

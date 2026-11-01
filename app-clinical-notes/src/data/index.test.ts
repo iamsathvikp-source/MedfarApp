@@ -6,12 +6,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const PATIENT_ID = "d33ddc07-c051-4b7f-9999-c3eaf651a4c1";
 
-// The client adds a random delay to every call and rejects when that delay is
-// under 500ms. Pinning Math.random keeps the tests deterministic.
 const NO_ERROR_RANDOM = 0.5;
 const SYNTHETIC_ERROR_RANDOM = 0.1;
 
-// Runs a client call to completion by flushing the simulated network delays.
 const settle = async <T>(promise: Promise<T>): Promise<T> => {
 	await jest.runAllTimersAsync();
 	return promise;
@@ -43,6 +40,22 @@ describe("Client", () => {
 			expect(notes.length).toBeGreaterThan(0);
 			notes.forEach((note) => {
 				expect(noteTypeData).toContainEqual(note.type);
+			});
+		});
+
+		it("has no mis-encoded (mojibake) characters", () => {
+			const seedText = JSON.stringify(patientData);
+
+			expect(seedText).not.toMatch(/Ã./);
+			expect(patientData[0].nurse).toBe("Infirmière Hélène");
+			expect(patientData[0].clinic).toBe("Clinique Sainte-Anne-de-Beaupré");
+		});
+
+		it("uses real line breaks, not a literal backslash-n", () => {
+			const notes = patientData.flatMap((patient) => patient.clinicalNotes);
+
+			notes.forEach((note) => {
+				expect(note.noteText).not.toContain("\\n");
 			});
 		});
 	});
@@ -131,6 +144,20 @@ describe("Client", () => {
 			expect(patient?.clinicalNotes).toHaveLength(
 				patientData[0].clinicalNotes.length + 1,
 			);
+		});
+
+		it("should simulate only one network call per save", async () => {
+			await settle(client.addNewClinicalNote(PATIENT_ID, clinicalNote));
+
+			expect(Math.random).toHaveBeenCalledTimes(1);
+		});
+
+		it("should not mutate the seed data", async () => {
+			const before = patientData[0].clinicalNotes.length;
+
+			await settle(client.addNewClinicalNote(PATIENT_ID, clinicalNote));
+
+			expect(patientData[0].clinicalNotes).toHaveLength(before);
 		});
 
 		it("should reject when the patient does not exist", async () => {

@@ -69,31 +69,38 @@ const slice = <T extends Array<PatientData>>(list: T, opts: FetchParams) => {
 };
 
 export default class Client {
+	private ready: Promise<void>;
+
 	constructor() {
-		this.resetState();
+		this.ready = this.resetState();
 	}
 
 	async resetState() {
-		AsyncStorage.setItem("patientData", JSON.stringify(patientData));
-		AsyncStorage.setItem("clinicalNoteTypes", JSON.stringify(noteTypeData));
+		await Promise.all([
+			AsyncStorage.setItem("patientData", JSON.stringify(patientData)),
+			AsyncStorage.setItem("clinicalNoteTypes", JSON.stringify(noteTypeData)),
+		]);
 	}
 
-	async fetchPatientData(opts?: FetchParams): Promise<PatientData[]> {
-		await randomFuzz();
-
-		console.log("Fetching patient data...");
-
+	private async readPatients(): Promise<PatientData[]> {
 		const data = await AsyncStorage.getItem("patientData");
 
 		if (!data) {
 			return [];
 		}
 
-		const patientData = JSON.parse(data) as null | PatientData[];
+		const patients = JSON.parse(data) as null | PatientData[];
 
-		if (!patientData) {
-			return [];
-		}
+		return patients ?? [];
+	}
+
+	async fetchPatientData(opts?: FetchParams): Promise<PatientData[]> {
+		await this.ready;
+		await randomFuzz();
+
+		console.log("Fetching patient data...");
+
+		const patientData = await this.readPatients();
 
 		if (opts) {
 			slice(patientData, opts);
@@ -106,11 +113,12 @@ export default class Client {
 		patientId: string,
 		clinicalNote: ClinicalNote,
 	): Promise<void> {
+		await this.ready;
 		await randomFuzz();
 
 		console.log(`Adding new clinical note for patient with ID: ${patientId}`);
 
-		const patientData = await this.fetchPatientData();
+		const patientData = await this.readPatients();
 
 		const patientIndex = patientData.findIndex(
 			(patient) => patient.id === patientId,
@@ -119,8 +127,11 @@ export default class Client {
 			throw new Error("Patient not found");
 		}
 
-		const updatedPatient = { ...patientData[patientIndex] };
-		updatedPatient.clinicalNotes.push(clinicalNote);
+		const existing = patientData[patientIndex];
+		const updatedPatient: PatientData = {
+			...existing,
+			clinicalNotes: [...existing.clinicalNotes, clinicalNote],
+		};
 
 		patientData[patientIndex] = updatedPatient;
 
@@ -130,6 +141,7 @@ export default class Client {
 	}
 
 	async fetchClinicalNoteTypes(): Promise<ClinicalNoteType[]> {
+		await this.ready;
 		await randomFuzz();
 
 		console.log("Fetching clinical note types...");
