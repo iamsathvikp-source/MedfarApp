@@ -1,6 +1,8 @@
 # app-clinical-notes
 
-Starter React Native project for the Medfar Mobile Coding Challenge. The challenge instructions, goals and delivery steps are in the [root readme](../readme.md).
+React Native app for the Medfar Mobile Coding Challenge. The challenge instructions are in the [root readme](../readme.md).
+
+> **Solution notes:** what existed, what changed and why, and the main decisions are in [SOLUTION.md](../SOLUTION.md). Every changed file also starts with a STARTER / ADDED / UPDATED comment block.
 
 ## Tech stack
 
@@ -8,6 +10,8 @@ Starter React Native project for the Medfar Mobile Coding Challenge. The challen
 - React Navigation (native stack)
 - Async Storage (used by the mock data client to persist data)
 - `@react-native-picker/picker`
+- `@react-native-community/datetimepicker` (added for the native date picker)
+- `@expo/vector-icons` (added for the search and sort icons)
 - Jest with the `jest-expo` preset
 
 ## Getting started
@@ -37,24 +41,34 @@ From the Expo CLI you can open the app in the iOS Simulator (`i`), an Android em
 
 ```
 app-clinical-notes/
-├── App.tsx                  # App entry component
-├── app.json                 # Expo configuration
-├── assets/                  # Icons and images
-├── lib/                     # Compiled mock data client, for use in your own setup
+├── App.tsx                        # Stack navigator under the Header, safe areas
+├── app.json                       # Expo configuration
+├── assets/                        # Icons and images
+├── lib/                           # Compiled mock data client (regenerated)
 └── src/
-    ├── client/
-    │   └── index.ts         # Ready-to-use instance of the mock data client
-    ├── components/          # Starter components
-    │   ├── Header.tsx       # "Health Clinic" title bar
-    │   ├── PatientInfo.tsx  # Patient information and discharge summary
-    │   ├── ClinicalNote.tsx # A single clinical note card
-    │   └── AddNoteModal.tsx # Add New Clinical Note modal
-    └── data/                # Mock data client source
-        ├── index.tsx        # Client class and data types
-        ├── patients.ts      # Seed patient data
-        ├── noteType.ts      # Seed clinical note types
-        ├── index.test.ts    # Client unit tests
-        └── __mocks__/       # Async Storage mock for Jest
+    ├── client/index.ts            # Ready-to-use client instance
+    ├── navigation.ts              # Route names and params
+    ├── screens/
+    │   ├── PatientListScreen.tsx      # Extra: search, sort, 10 per page
+    │   └── PatientOverviewScreen.tsx  # The brief's screen: states, list, modal
+    ├── hooks/                     # Data fetching (components never call the client)
+    │   ├── usePatients.ts         # All patients in one request
+    │   ├── usePatient.ts
+    │   ├── patientCache.ts        # Last known copy of each patient
+    │   ├── useNoteTypes.ts
+    │   ├── NoteTypesContext.tsx   # Note types loaded once at app start
+    │   └── useSaveClinicalNote.ts
+    ├── components/
+    │   ├── Header.tsx             # "Health Clinic" title bar (+ back button)
+    │   ├── PatientInfo.tsx        # Patient info + discharge summary card
+    │   ├── ClinicalNote.tsx       # One clinical note card
+    │   ├── NoteTypeFilter.tsx     # Filter chips
+    │   ├── AddNoteModal.tsx       # Add New Clinical Note form
+    │   ├── Button.tsx, Chip.tsx, SortSheet.tsx, StatusView.tsx, ErrorBanner.tsx
+    ├── utils/                     # Pure logic + unit tests
+    │   ├── date.ts, notes.ts, patients.ts, validateNote.ts, clinicalNote.ts, errors.ts
+    ├── theme.ts                   # Colors and spacing
+    └── data/                      # Mock data client source (+ tests)
 ```
 
 ## Mock data client
